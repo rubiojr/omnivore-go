@@ -1,4 +1,4 @@
-package omnivore
+package queries
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	"github.com/shurcooL/graphql"
 )
 
-var searchQuery struct {
+var Search struct {
 	Search struct {
 		SearchSuccess struct {
 			Edges []struct {
@@ -48,41 +48,4 @@ var searchQuery struct {
 			errorCodes string
 		} `graphql:"... on SearchError"`
 	} `graphql:"search(after: $after, format: $format, query: $query, includeContent: $includeContent)"`
-}
-
-var newsletterEmailsQuery struct {
-	NewsletterEmails struct {
-		NewsletterEmailsSuccess struct {
-			NewsletterEmails []struct {
-				Address           string
-				CreatedAt         time.Time
-				Name              string
-				SubscriptionCount int
-				Folder            string
-			}
-		} `graphql:"... on NewsletterEmailsSuccess"`
-	}
-}
-
-var subscriptionsQuery struct {
-	Subscriptions struct {
-		SubscriptionsSuccess struct {
-			Subscriptions []struct {
-				AutoAddToLibrary bool
-				Count            int
-				CreatedAt        time.Time
-				Description      string
-				FailedAt         time.Time
-				FetchContent     bool
-				Folder           string
-				Icon             string
-				IsPrivate        bool
-				LastFetchedAt    time.Time
-				Name             string
-				NewsletterEmail  string
-				RefreshedAt      time.Time
-				Url              string
-			}
-		} `graphql:"... on SubscriptionsSuccess"`
-	}
 }

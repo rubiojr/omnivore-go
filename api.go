@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rubiojr/omnivore-go/queries"
 	"github.com/shurcooL/graphql"
 )
 
@@ -103,12 +104,14 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 			"format":         graphql.String(opts.Format),
 		}
 
-		err := c.graphql.Query(context.Background(), &searchQuery, variables)
+		err := c.graphql.Query(context.Background(), &queries.Search, variables)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, edge := range searchQuery.Search.SearchSuccess.Edges {
+		results := queries.Search.Search.SearchSuccess
+
+		for _, edge := range results.Edges {
 			si := SearchItem{
 				Title:         edge.Node.Title,
 				PublishedAt:   edge.Node.PublishedAt,
@@ -141,11 +144,11 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 
 		}
 
-		if !searchQuery.Search.SearchSuccess.PageInfo.HasNextPage {
+		if !results.PageInfo.HasNextPage {
 			break
 		}
 
-		afterCursor = searchQuery.Search.SearchSuccess.PageInfo.EndCursor
+		afterCursor = results.PageInfo.EndCursor
 	}
 
 	return a, nil
@@ -197,12 +200,13 @@ func pageTypeToName(pageType string) PageType {
 func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
 	a := []NewsletterEmail{}
 
-	err := c.graphql.Query(context.Background(), &newsletterEmailsQuery, nil)
+	err := c.graphql.Query(context.Background(), &queries.NewsletterEmail, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, email := range newsletterEmailsQuery.NewsletterEmails.NewsletterEmailsSuccess.NewsletterEmails {
+	result := queries.NewsletterEmail.NewsletterEmails.NewsletterEmailsSuccess
+	for _, email := range result.NewsletterEmails {
 		a = append(a, NewsletterEmail{
 			Address:           email.Address,
 			CreatedAt:         email.CreatedAt,
@@ -218,12 +222,13 @@ func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
 func (c *Omnivore) Subscriptions() ([]Subscription, error) {
 	a := []Subscription{}
 
-	err := c.graphql.Query(context.Background(), &subscriptionsQuery, nil)
+	err := c.graphql.Query(context.Background(), &queries.Subscriptions, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, sub := range subscriptionsQuery.Subscriptions.SubscriptionsSuccess.Subscriptions {
+	result := queries.Subscriptions.Subscriptions.SubscriptionsSuccess
+	for _, sub := range result.Subscriptions {
 		a = append(a, Subscription{
 			AutoAddToLibrary: sub.AutoAddToLibrary,
 			Count:            sub.Count,
