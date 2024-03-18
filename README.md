@@ -17,7 +17,7 @@ Supported queries:
 - [ ] Groups
 - [ ] Filters
 - [ ] Rules
-- [ ] Subscriptions
+- [x] Subscriptions
 
 ## Usage
 

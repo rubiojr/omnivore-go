@@ -32,6 +32,23 @@ func NewClientFor(url string, opts Opts) *Omnivore {
 	return &Omnivore{graphql: client}
 }
 
+type Subscription struct {
+	AutoAddToLibrary bool
+	Count            int
+	CreatedAt        time.Time
+	Description      string
+	FailedAt         time.Time
+	FetchContent     bool
+	Folder           string
+	Icon             string
+	IsPrivate        bool
+	LastFetchedAt    time.Time
+	Name             string
+	NewsletterEmail  string
+	RefreshedAt      time.Time
+	Url              string
+}
+
 type Label struct {
 	Name        string
 	Color       string
@@ -192,6 +209,36 @@ func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
 			Name:              email.Name,
 			SubscriptionCount: email.SubscriptionCount,
 			Folder:            email.Folder,
+		})
+	}
+
+	return a, nil
+}
+
+func (c *Omnivore) Subscriptions() ([]Subscription, error) {
+	a := []Subscription{}
+
+	err := c.graphql.Query(context.Background(), &subscriptionsQuery, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, sub := range subscriptionsQuery.Subscriptions.SubscriptionsSuccess.Subscriptions {
+		a = append(a, Subscription{
+			AutoAddToLibrary: sub.AutoAddToLibrary,
+			Count:            sub.Count,
+			CreatedAt:        sub.CreatedAt,
+			Description:      sub.Description,
+			FailedAt:         sub.FailedAt,
+			FetchContent:     sub.FetchContent,
+			Folder:           sub.Folder,
+			Icon:             sub.Icon,
+			IsPrivate:        sub.IsPrivate,
+			LastFetchedAt:    sub.LastFetchedAt,
+			Name:             sub.Name,
+			NewsletterEmail:  sub.NewsletterEmail,
+			RefreshedAt:      sub.RefreshedAt,
+			Url:              sub.Url,
 		})
 	}
 

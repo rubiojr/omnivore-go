@@ -10,7 +10,6 @@ import (
 
 func main() {
 	client := omnivore.NewClient(omnivore.Opts{Token: getAPIToken()})
-	// https://docs.omnivore.app/using/search.html
 	emails, err := client.NewsletterEmails()
 	if err != nil {
 		log.Fatalf("Failed to search: %v", err)
