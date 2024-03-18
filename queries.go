@@ -49,3 +49,17 @@ var searchQuery struct {
 		} `graphql:"... on SearchError"`
 	} `graphql:"search(after: $after, format: $format, query: $query, includeContent: $includeContent)"`
 }
+
+var newsletterEmailsQuery struct {
+	NewsletterEmails struct {
+		NewsletterEmailsSuccess struct {
+			NewsletterEmails []struct {
+				Address           string
+				CreatedAt         time.Time
+				Name              string
+				SubscriptionCount int
+				Folder            string
+			}
+		} `graphql:"... on NewsletterEmailsSuccess"`
+	}
+}

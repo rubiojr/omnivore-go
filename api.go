@@ -39,6 +39,14 @@ type Label struct {
 	CreatedAt   time.Time
 }
 
+type NewsletterEmail struct {
+	Address           string
+	CreatedAt         time.Time
+	Name              string
+	SubscriptionCount int
+	Folder            string
+}
+
 type SearchItem struct {
 	Title         string
 	Content       string
@@ -167,4 +175,25 @@ func pageTypeToName(pageType string) PageType {
 	default:
 		return PageTypeUnknown
 	}
+}
+
+func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
+	a := []NewsletterEmail{}
+
+	err := c.graphql.Query(context.Background(), &newsletterEmailsQuery, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, email := range newsletterEmailsQuery.NewsletterEmails.NewsletterEmailsSuccess.NewsletterEmails {
+		a = append(a, NewsletterEmail{
+			Address:           email.Address,
+			CreatedAt:         email.CreatedAt,
+			Name:              email.Name,
+			SubscriptionCount: email.SubscriptionCount,
+			Folder:            email.Folder,
+		})
+	}
+
+	return a, nil
 }
