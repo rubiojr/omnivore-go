@@ -3,12 +3,24 @@ package omnivore
 import (
 	"context"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/rubiojr/omnivore-go/queries"
 	"github.com/shurcooL/graphql"
 )
+
+const (
+	PageTypeArticle = "article"
+	PageTypeVideo   = "video"
+	PageTypeTweet   = "tweet"
+	PageTypeFile    = "file"
+	PageTypeBook    = "book"
+	PageTypeImage   = "image"
+	PageTypeUnknown = "unknown"
+	PageTypeWebsite = "website"
+)
+
+type PageType string
 
 type Omnivore struct {
 	graphql *graphql.Client
@@ -16,21 +28,6 @@ type Omnivore struct {
 
 type Opts struct {
 	Token string
-}
-
-func NewClient(opts Opts) *Omnivore {
-	return NewClientFor("https://api-prod.omnivore.app/api/graphql", opts)
-}
-
-func NewClientFor(url string, opts Opts) *Omnivore {
-	httpClient := &http.Client{
-		Transport: &headerTransport{
-			Token: opts.Token,
-		},
-	}
-
-	client := graphql.NewClient(url, httpClient)
-	return &Omnivore{graphql: client}
 }
 
 type Subscription struct {
@@ -89,6 +86,21 @@ type SearchOpts struct {
 	Query          string
 	IncludeContent bool
 	Format         string
+}
+
+func NewClient(opts Opts) *Omnivore {
+	return NewClientFor("https://api-prod.omnivore.app/api/graphql", opts)
+}
+
+func NewClientFor(url string, opts Opts) *Omnivore {
+	httpClient := &http.Client{
+		Transport: &headerTransport{
+			Token: opts.Token,
+		},
+	}
+
+	client := graphql.NewClient(url, httpClient)
+	return &Omnivore{graphql: client}
 }
 
 func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
@@ -152,49 +164,6 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 	}
 
 	return a, nil
-}
-
-type headerTransport struct {
-	Token string
-}
-
-func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("Authorization", t.Token)
-	return http.DefaultTransport.RoundTrip(req)
-}
-
-const (
-	PageTypeArticle = "article"
-	PageTypeVideo   = "video"
-	PageTypeTweet   = "tweet"
-	PageTypeFile    = "file"
-	PageTypeBook    = "book"
-	PageTypeImage   = "image"
-	PageTypeUnknown = "unknown"
-	PageTypeWebsite = "website"
-)
-
-type PageType string
-
-func pageTypeToName(pageType string) PageType {
-	switch strings.ToLower(pageType) {
-	case "article":
-		return PageTypeArticle
-	case "video":
-		return PageTypeVideo
-	case "website":
-		return PageTypeWebsite
-	case "tweet":
-		return PageTypeTweet
-	case "file":
-		return PageTypeFile
-	case "book":
-		return PageTypeBook
-	case "image":
-		return PageTypeImage
-	default:
-		return PageTypeUnknown
-	}
 }
 
 func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
