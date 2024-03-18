@@ -32,7 +32,14 @@ func NewClientFor(url string, opts Opts) *Omnivore {
 	return &Omnivore{graphql: client}
 }
 
-type Article struct {
+type Label struct {
+	Name        string
+	Color       string
+	Description string
+	CreatedAt   time.Time
+}
+
+type SearchItem struct {
 	Title         string
 	Content       string
 	Author        string
@@ -47,74 +54,73 @@ type Article struct {
 	CreatedAt     time.Time
 	ContentReader string
 	Words         int
+	FeedContent   string
+	Folder        string
+	Labels        []Label
 }
 
 type SearchOpts struct {
 	Query          string
 	IncludeContent bool
+	Format         string
 }
 
-func (c *Omnivore) GetArticles(opts SearchOpts) ([]Article, error) {
-	var query struct {
-		Search struct {
-			SearchSuccess struct {
-				Edges []struct {
-					Cursor string
-					Node   struct {
-						Author        string
-						Title         string
-						Content       string
-						IsArchived    bool
-						PublishedAt   time.Time
-						Description   string
-						SavedAt       time.Time
-						ID            graphql.ID
-						ReadAt        time.Time
-						Url           string
-						PageType      string
-						CreatedAt     time.Time
-						ContentReader string
-						WordsCount    int
-					}
-				}
-				PageInfo struct {
-					TotalCount int
-				}
-			} `graphql:"... on SearchSuccess"`
-			SearchError struct {
-				errorCodes string
-			} `graphql:"... on SearchError"`
-		} `graphql:"search(query: $query, includeContent: $includeContent)"`
-	}
+func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
+	afterCursor := ""
 
-	variables := map[string]any{
-		"query":          graphql.String(opts.Query),
-		"includeContent": graphql.Boolean(opts.IncludeContent),
-	}
+	a := []SearchItem{}
 
-	err := c.graphql.Query(context.Background(), &query, variables)
-	if err != nil {
-		return nil, err
-	}
+	for {
+		variables := map[string]any{
+			"query":          graphql.String(opts.Query),
+			"includeContent": graphql.Boolean(opts.IncludeContent),
+			"after":          graphql.String(afterCursor),
+			"format":         graphql.String(opts.Format),
+		}
 
-	a := []Article{}
-	for _, edge := range query.Search.SearchSuccess.Edges {
-		a = append(a, Article{
-			Title:         edge.Node.Title,
-			PublishedAt:   edge.Node.PublishedAt,
-			Content:       edge.Node.Content,
-			Description:   edge.Node.Description,
-			IsArchived:    edge.Node.IsArchived,
-			SavedAt:       edge.Node.SavedAt,
-			ID:            edge.Node.ID.(string),
-			ReadAt:        edge.Node.ReadAt,
-			Url:           edge.Node.Url,
-			PageType:      pageTypeToName(edge.Node.PageType),
-			CreatedAt:     edge.Node.CreatedAt,
-			ContentReader: edge.Node.ContentReader,
-			Author:        edge.Node.Author,
-			Words:         edge.Node.WordsCount,
-		})
+		err := c.graphql.Query(context.Background(), &searchQuery, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, edge := range searchQuery.Search.SearchSuccess.Edges {
+			si := SearchItem{
+				Title:         edge.Node.Title,
+				PublishedAt:   edge.Node.PublishedAt,
+				Content:       edge.Node.Content,
+				Description:   edge.Node.Description,
+				IsArchived:    edge.Node.IsArchived,
+				SavedAt:       edge.Node.SavedAt,
+				ID:            edge.Node.ID.(string),
+				ReadAt:        edge.Node.ReadAt,
+				Url:           edge.Node.Url,
+				PageType:      pageTypeToName(edge.Node.PageType),
+				CreatedAt:     edge.Node.CreatedAt,
+				ContentReader: edge.Node.ContentReader,
+				Author:        edge.Node.Author,
+				Words:         edge.Node.WordsCount,
+				FeedContent:   edge.Node.FeedContent,
+				Folder:        edge.Node.Folder,
+			}
+			labels := []Label{}
+			for _, label := range edge.Node.Labels {
+				labels = append(labels, Label{
+					Name:        label.Name,
+					Color:       label.Color,
+					Description: label.Description,
+					CreatedAt:   label.CreatedAt,
+				})
+			}
+			si.Labels = labels
+			a = append(a, si)
+
+		}
+
+		if !searchQuery.Search.SearchSuccess.PageInfo.HasNextPage {
+			break
+		}
+
+		afterCursor = searchQuery.Search.SearchSuccess.PageInfo.EndCursor
 	}
 
 	return a, nil
