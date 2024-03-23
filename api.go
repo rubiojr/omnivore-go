@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/rubiojr/omnivore-go/queries"
+	"github.com/rubiojr/omnivore-go/types"
 	"github.com/shurcooL/graphql"
 )
 
@@ -47,13 +48,6 @@ type Subscription struct {
 	Url              string
 }
 
-type Label struct {
-	Name        string
-	Color       string
-	Description string
-	CreatedAt   time.Time
-}
-
 type NewsletterEmail struct {
 	Address           string
 	CreatedAt         time.Time
@@ -79,7 +73,7 @@ type SearchItem struct {
 	Words         int
 	FeedContent   string
 	Folder        string
-	Labels        []Label
+	Labels        []types.Label
 }
 
 type SearchOpts struct {
@@ -152,9 +146,9 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 				FeedContent:   edge.Node.FeedContent,
 				Folder:        edge.Node.Folder,
 			}
-			labels := []Label{}
+			labels := []types.Label{}
 			for _, label := range edge.Node.Labels {
-				labels = append(labels, Label{
+				labels = append(labels, types.Label{
 					Name:        label.Name,
 					Color:       label.Color,
 					Description: label.Description,
@@ -254,4 +248,24 @@ func (c *Omnivore) ApiKeys() ([]ApiKey, error) {
 
 func (a *ApiKey) HasExpiry() bool {
 	return a.ExpiresAt != "+275760-09-13T00:00:00.000Z"
+}
+
+func (c *Omnivore) Labels() ([]*types.Label, error) {
+	a := []*types.Label{}
+
+	err := c.graphql.Query(context.Background(), &queries.Labels, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	result := queries.Labels.Labels.LabelsSuccess
+	for _, label := range result.Labels {
+		a = append(a, &types.Label{
+			ID:    label.ID,
+			Name:  label.Name,
+			Color: label.Color,
+		})
+	}
+
+	return a, nil
 }

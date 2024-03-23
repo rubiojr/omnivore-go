@@ -39,3 +39,13 @@ func TestApiKeys(t *testing.T) {
 	assert.Equal(t, keys[0].ExpiresAt, "+275760-09-13T00:00:00.000Z")
 	assert.False(t, keys[0].HasExpiry())
 }
+
+func TestLabels(t *testing.T) {
+	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
+	labels, err := client.Labels()
+	assert.NoError(t, err, "Failed to get labels")
+	assert.Equal(t, len(labels), 1)
+	assert.Equal(t, labels[0].Name, "RSS")
+	assert.Equal(t, labels[0].Color, "#F26522")
+	assert.Equal(t, labels[0].Description, "")
+}
