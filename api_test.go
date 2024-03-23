@@ -29,3 +29,13 @@ func TestSubcriptions(t *testing.T) {
 	assert.Equal(t, len(subscriptions), 1)
 	assert.Equal(t, subscriptions[0].Name, "Omnivore Blog")
 }
+
+func TestApiKeys(t *testing.T) {
+	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
+	keys, err := client.ApiKeys()
+	assert.NoError(t, err, "Failed to get api keys")
+	assert.Equal(t, len(keys), 1)
+	assert.Equal(t, keys[0].Name, "omnivore-go-github")
+	assert.Equal(t, keys[0].ExpiresAt, "+275760-09-13T00:00:00.000Z")
+	assert.False(t, keys[0].HasExpiry())
+}

@@ -8,7 +8,7 @@ Supported queries:
 
 - [x] Search
 - [x] NewsletterEmails
-- [ ] ApiKeys
+- [x] ApiKeys
 - [ ] Users
 - [ ] Labels
 - [ ] Integrations
