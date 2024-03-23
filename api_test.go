@@ -19,6 +19,7 @@ func TestSearch(t *testing.T) {
 	articles, err = client.Search(omnivore.SearchOpts{Query: "in:all label:RSS"})
 	assert.NoError(t, err, "Failed to search")
 	assert.Equal(t, len(articles), 1)
+	assert.Equal(t, articles[0].IsUnread(), true)
 	assert.Equal(t, articles[0].Title, "Web changes for an improved experience")
 }
 

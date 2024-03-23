@@ -27,18 +27,27 @@ type Omnivore struct {
 }
 
 type Opts struct {
+	// Omnivore API token.
 	Token string
 }
 
 type Label struct {
-	Name        string
-	Color       string
+	// Label name.
+	Name string
+	// Label color (hex).
+	Color string
+	// Label description.
 	Description string
-	CreatedAt   time.Time
-	ID          graphql.ID
-	Source      string
-	Internal    bool
-	Position    int
+	// Label creation date.
+	CreatedAt time.Time
+	// Label ID.
+	ID graphql.ID
+	// FIXME: no clue
+	Source string
+	// FIXME: no clue
+	Internal bool
+	// Label position.
+	Position int
 }
 
 type Subscription struct {
@@ -67,15 +76,25 @@ type NewsletterEmail struct {
 }
 
 type SearchItem struct {
-	Title         string
-	Content       string
-	Author        string
-	Description   string
-	IsArchived    bool
-	PublishedAt   time.Time
-	SavedAt       time.Time
-	ID            string
-	ReadAt        time.Time
+	// Title of the item.
+	Title string
+	// Content of the item.
+	Content string
+	// Author of the item.
+	Author string
+	//Description of the item.
+	Description string
+	// IsArchived is true if the item is archived.
+	IsArchived bool
+	// PublishedAt is the date the item was published.
+	PublishedAt time.Time
+	// SavedAt is the date the item was saved.
+	SavedAt time.Time
+	// ID is the item ID.
+	ID string
+	// ReadAt is the date the item was read.
+	ReadAt time.Time
+	// Url is the URL of the item.
 	Url           string
 	PageType      PageType
 	CreatedAt     time.Time
@@ -87,25 +106,38 @@ type SearchItem struct {
 }
 
 type SearchOpts struct {
-	Query          string
+	// Query is the search query.
+	// Documented here: https://docs.omnivore.app/using/search.html
+	Query string
+	// IncludeContent will include the content of the articles in the search results.
 	IncludeContent bool
-	Format         string
 }
 
 type ApiKey struct {
-	ID        graphql.ID
-	Key       string
+	ID graphql.ID
+	// Key is the API key.
+	Key string
+	// CreatedAt is the date the API key was created.
 	CreatedAt time.Time
+	// ExpiresAt is the date the API key expires.
 	ExpiresAt string
-	Name      string
-	Scopes    []string
-	UsedAt    time.Time
+	// Name is the name of the API key.
+	Name   string
+	Scopes []string
+	// UsedAt is the date the API key was last used.
+	UsedAt time.Time
 }
 
+// NewClient creates a new Omnivore client.
+//
+// Opts.Token is required, or the function will panic.
 func NewClient(opts Opts) *Omnivore {
 	return NewClientFor("https://api-prod.omnivore.app/api/graphql", opts)
 }
 
+// NewClientFor creates a new Omnivore client for a specific URL.
+//
+// Opts.Token is required, or the function will panic.
 func NewClientFor(url string, opts Opts) *Omnivore {
 	if opts.Token == "" {
 		panic("token is missing")
@@ -121,6 +153,9 @@ func NewClientFor(url string, opts Opts) *Omnivore {
 	return &Omnivore{graphql: client}
 }
 
+// Search searches for items in Omnivore.
+//
+// The search is paginated, and it will fetch all the results by default.
 func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 	afterCursor := ""
 
@@ -131,7 +166,6 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 			"query":          graphql.String(opts.Query),
 			"includeContent": graphql.Boolean(opts.IncludeContent),
 			"after":          graphql.String(afterCursor),
-			"format":         graphql.String(opts.Format),
 		}
 
 		err := c.graphql.Query(context.Background(), &queries.Search, variables)
@@ -184,6 +218,7 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 	return a, nil
 }
 
+// NewsletterEmails returns the newsletter emails of the user.
 func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
 	a := []NewsletterEmail{}
 
@@ -206,6 +241,7 @@ func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
 	return a, nil
 }
 
+// Subscriptions returns the subscriptions of the user.
 func (c *Omnivore) Subscriptions() ([]Subscription, error) {
 	a := []Subscription{}
 
@@ -236,6 +272,7 @@ func (c *Omnivore) Subscriptions() ([]Subscription, error) {
 	return a, nil
 }
 
+// ApiKeys returns all the API keys in Omnivore.
 func (c *Omnivore) ApiKeys() ([]ApiKey, error) {
 	a := []ApiKey{}
 
@@ -260,10 +297,12 @@ func (c *Omnivore) ApiKeys() ([]ApiKey, error) {
 	return a, nil
 }
 
+// HasExpiry returns true if the API key has an expiry date.
 func (a *ApiKey) HasExpiry() bool {
 	return a.ExpiresAt != "+275760-09-13T00:00:00.000Z"
 }
 
+// Labels returns all the labels in Omnivore.
 func (c *Omnivore) Labels() ([]*Label, error) {
 	a := []*Label{}
 
@@ -282,4 +321,9 @@ func (c *Omnivore) Labels() ([]*Label, error) {
 	}
 
 	return a, nil
+}
+
+// IsUnread returns true if the item is unread.
+func (c *SearchItem) IsUnread() bool {
+	return c.ReadAt.IsZero()
 }

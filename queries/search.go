@@ -47,5 +47,5 @@ var Search struct {
 		SearchError struct {
 			errorCodes string
 		} `graphql:"... on SearchError"`
-	} `graphql:"search(after: $after, format: $format, query: $query, includeContent: $includeContent)"`
+	} `graphql:"search(after: $after, query: $query, includeContent: $includeContent)"`
 }
