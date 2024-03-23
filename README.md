@@ -1,5 +1,7 @@
 # Omnivore Go
 
+[![GoDoc](https://godoc.org/github.com/rubiojr/omnivore-go?status.svg)](https://godoc.org/github.com/rubiojr/omnivore-go)
+
 This is a Go client library for the [Omnivore GraphQL API](https://github.com/omnivore-app/omnivore).
 
 ## Work in Progress
