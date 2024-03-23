@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/rubiojr/omnivore-go/queries"
-	"github.com/rubiojr/omnivore-go/types"
 	"github.com/shurcooL/graphql"
 )
 
@@ -29,6 +28,17 @@ type Omnivore struct {
 
 type Opts struct {
 	Token string
+}
+
+type Label struct {
+	Name        string
+	Color       string
+	Description string
+	CreatedAt   time.Time
+	ID          graphql.ID
+	Source      string
+	Internal    bool
+	Position    int
 }
 
 type Subscription struct {
@@ -73,7 +83,7 @@ type SearchItem struct {
 	Words         int
 	FeedContent   string
 	Folder        string
-	Labels        []types.Label
+	Labels        []Label
 }
 
 type SearchOpts struct {
@@ -97,6 +107,10 @@ func NewClient(opts Opts) *Omnivore {
 }
 
 func NewClientFor(url string, opts Opts) *Omnivore {
+	if opts.Token == "" {
+		panic("token is missing")
+	}
+
 	httpClient := &http.Client{
 		Transport: &headerTransport{
 			Token: opts.Token,
@@ -146,9 +160,9 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 				FeedContent:   edge.Node.FeedContent,
 				Folder:        edge.Node.Folder,
 			}
-			labels := []types.Label{}
+			labels := []Label{}
 			for _, label := range edge.Node.Labels {
-				labels = append(labels, types.Label{
+				labels = append(labels, Label{
 					Name:        label.Name,
 					Color:       label.Color,
 					Description: label.Description,
@@ -250,8 +264,8 @@ func (a *ApiKey) HasExpiry() bool {
 	return a.ExpiresAt != "+275760-09-13T00:00:00.000Z"
 }
 
-func (c *Omnivore) Labels() ([]*types.Label, error) {
-	a := []*types.Label{}
+func (c *Omnivore) Labels() ([]*Label, error) {
+	a := []*Label{}
 
 	err := c.graphql.Query(context.Background(), &queries.Labels, nil)
 	if err != nil {
@@ -260,7 +274,7 @@ func (c *Omnivore) Labels() ([]*types.Label, error) {
 
 	result := queries.Labels.Labels.LabelsSuccess
 	for _, label := range result.Labels {
-		a = append(a, &types.Label{
+		a = append(a, &Label{
 			ID:    label.ID,
 			Name:  label.Name,
 			Color: label.Color,
