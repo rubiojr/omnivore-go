@@ -10,7 +10,7 @@ Supported queries:
 - [x] NewsletterEmails
 - [x] ApiKeys
 - [ ] Users
-- [ ] Labels
+- [x] Labels
 - [ ] Integrations
 - [ ] Webhooks
 - [ ] Feeds
