@@ -32,5 +32,6 @@ type headerTransport struct {
 
 func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Authorization", t.Token)
+	req.Header.Set("User-Agent", "omnivore-go/1.0")
 	return http.DefaultTransport.RoundTrip(req)
 }
