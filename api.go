@@ -88,6 +88,16 @@ type SearchOpts struct {
 	Format         string
 }
 
+type ApiKey struct {
+	ID        graphql.ID
+	Key       string
+	CreatedAt time.Time
+	ExpiresAt string
+	Name      string
+	Scopes    []string
+	UsedAt    time.Time
+}
+
 func NewClient(opts Opts) *Omnivore {
 	return NewClientFor("https://api-prod.omnivore.app/api/graphql", opts)
 }
@@ -215,6 +225,33 @@ func (c *Omnivore) Subscriptions() ([]Subscription, error) {
 			Url:              sub.Url,
 		})
 	}
+	return a, nil
+}
+
+func (c *Omnivore) ApiKeys() ([]ApiKey, error) {
+	a := []ApiKey{}
+
+	err := c.graphql.Query(context.Background(), &queries.ApiKeys, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	result := queries.ApiKeys.ApiKeys.ApiKeysSuccess
+	for _, apiKey := range result.ApiKeys {
+		a = append(a, ApiKey{
+			ID:        apiKey.ID,
+			Key:       apiKey.Key,
+			CreatedAt: apiKey.CreatedAt,
+			ExpiresAt: apiKey.ExpiresAt,
+			Name:      apiKey.Name,
+			Scopes:    apiKey.Scopes,
+			UsedAt:    apiKey.UsedAt,
+		})
+	}
 
 	return a, nil
+}
+
+func (a *ApiKey) HasExpiry() bool {
+	return a.ExpiresAt != "+275760-09-13T00:00:00.000Z"
 }
