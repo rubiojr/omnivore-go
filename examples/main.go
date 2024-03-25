@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -12,7 +13,7 @@ import (
 func main() {
 	client := omnivore.NewClient(omnivore.Opts{Token: getAPIToken()})
 	// https://docs.omnivore.app/using/search.html
-	a, err := client.Search(omnivore.SearchOpts{Query: "in:all sort:saved"})
+	a, err := client.Search(context.Background(), omnivore.SearchOpts{Query: "in:all sort:saved"})
 	if err != nil {
 		log.Fatalf("Failed to search: %v", err)
 	}

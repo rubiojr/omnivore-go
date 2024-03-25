@@ -1,6 +1,7 @@
 package omnivore_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -11,9 +12,10 @@ import (
 
 func TestSetup(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
-	articles, err := client.Search(omnivore.SearchOpts{Query: "in:all"})
+	articles, err := client.Search(context.Background(), omnivore.SearchOpts{Query: "in:all"})
+	assert.NoError(t, err, "Failed to search")
 	for _, a := range articles {
-		err = client.DeleteArticle(a.ID)
+		err = client.DeleteArticle(context.Background(), a.ID)
 		assert.NoError(t, err, "Failed to delete article")
 	}
 }
@@ -21,30 +23,30 @@ func TestSetup(t *testing.T) {
 func TestSaveUrl(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
 	wp := "https://en.wikipedia.org/wiki/Leet"
-	err := client.SaveUrl(wp)
+	err := client.SaveUrl(context.Background(), wp)
 	assert.NoError(t, err, "Failed to save article")
 }
 
 func TestSearch(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
 	// https://docs.omnivore.app/using/search.html
-	articles, err := client.Search(omnivore.SearchOpts{Query: "in:all -label:RSS"})
+	articles, err := client.Search(context.Background(), omnivore.SearchOpts{Query: "in:all -label:RSS"})
 	assert.NoError(t, err, "Failed to search")
 	assert.Equal(t, len(articles), 1)
 	assert.Equal(t, articles[0].Title, "https://en.wikipedia.org/wiki/Leet")
 
-	articles, err = client.Search(omnivore.SearchOpts{Query: "in:all label:RSS"})
+	articles, err = client.Search(context.Background(), omnivore.SearchOpts{Query: "in:all label:RSS"})
 	assert.NoError(t, err, "Failed to search")
 	assert.Equal(t, len(articles), 0)
 
-	articles, err = client.Search(omnivore.SearchOpts{Query: "title:Leet"})
+	articles, err = client.Search(context.Background(), omnivore.SearchOpts{Query: "title:Leet"})
 	assert.NoError(t, err, "Failed to search")
 	assert.Equal(t, len(articles), 1)
 }
 
 func TestSubcriptions(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
-	subscriptions, err := client.Subscriptions()
+	subscriptions, err := client.Subscriptions(context.Background())
 	assert.NoError(t, err, "Failed to get subscriptions")
 	assert.Equal(t, len(subscriptions), 1)
 	assert.Equal(t, subscriptions[0].Name, "Omnivore Blog")
@@ -52,7 +54,7 @@ func TestSubcriptions(t *testing.T) {
 
 func TestApiKeys(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
-	keys, err := client.ApiKeys()
+	keys, err := client.ApiKeys(context.Background())
 	assert.NoError(t, err, "Failed to get api keys")
 	assert.Equal(t, len(keys), 1)
 	assert.Equal(t, keys[0].Name, "omnivore-go-github")
@@ -62,7 +64,7 @@ func TestApiKeys(t *testing.T) {
 
 func TestLabels(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
-	labels, err := client.Labels()
+	labels, err := client.Labels(context.Background())
 	assert.NoError(t, err, "Failed to get labels")
 	assert.Equal(t, len(labels), 1)
 	assert.Equal(t, labels[0].Name, "RSS")
@@ -72,11 +74,13 @@ func TestLabels(t *testing.T) {
 
 func TestDeleteArticle(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
-	articles, err := client.Search(omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "https://en.wikipedia.org/wiki/Leet")})
+	articles, err := client.Search(context.Background(), omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "https://en.wikipedia.org/wiki/Leet")})
+	assert.NoError(t, err, "Failed to search")
 	assert.Equal(t, len(articles), 1)
 	// Wait a bit, deletes right after saving are ignored otherwise
-	err = client.DeleteArticle(articles[0].ID)
+	err = client.DeleteArticle(context.Background(), articles[0].ID)
 	assert.NoError(t, err, "Failed to delete article")
-	articles, err = client.Search(omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "https://en.wikipedia.org/wiki/Leet")})
+	articles, err = client.Search(context.Background(), omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "https://en.wikipedia.org/wiki/Leet")})
+	assert.NoError(t, err, "Failed to search")
 	assert.Equal(t, len(articles), 0)
 }

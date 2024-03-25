@@ -157,7 +157,7 @@ func NewClientFor(url string, opts Opts) *Omnivore {
 // Search searches for items in Omnivore.
 //
 // The search is paginated, and it will fetch all the results by default.
-func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
+func (c *Omnivore) Search(ctx context.Context, opts SearchOpts) ([]SearchItem, error) {
 	afterCursor := ""
 
 	a := []SearchItem{}
@@ -169,7 +169,7 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 			"after":          graphql.String(afterCursor),
 		}
 
-		err := c.graphql.Query(context.Background(), &queries.Search, variables)
+		err := c.graphql.Query(ctx, &queries.Search, variables)
 		if err != nil {
 			return nil, err
 		}
@@ -220,10 +220,10 @@ func (c *Omnivore) Search(opts SearchOpts) ([]SearchItem, error) {
 }
 
 // NewsletterEmails returns the newsletter emails of the user.
-func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
+func (c *Omnivore) NewsletterEmails(ctx context.Context) ([]NewsletterEmail, error) {
 	a := []NewsletterEmail{}
 
-	err := c.graphql.Query(context.Background(), &queries.NewsletterEmail, nil)
+	err := c.graphql.Query(ctx, &queries.NewsletterEmail, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -243,10 +243,10 @@ func (c *Omnivore) NewsletterEmails() ([]NewsletterEmail, error) {
 }
 
 // Subscriptions returns the subscriptions of the user.
-func (c *Omnivore) Subscriptions() ([]Subscription, error) {
+func (c *Omnivore) Subscriptions(ctx context.Context) ([]Subscription, error) {
 	a := []Subscription{}
 
-	err := c.graphql.Query(context.Background(), &queries.Subscriptions, nil)
+	err := c.graphql.Query(ctx, &queries.Subscriptions, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -274,10 +274,10 @@ func (c *Omnivore) Subscriptions() ([]Subscription, error) {
 }
 
 // ApiKeys returns all the API keys in Omnivore.
-func (c *Omnivore) ApiKeys() ([]ApiKey, error) {
+func (c *Omnivore) ApiKeys(ctx context.Context) ([]ApiKey, error) {
 	a := []ApiKey{}
 
-	err := c.graphql.Query(context.Background(), &queries.ApiKeys, nil)
+	err := c.graphql.Query(ctx, &queries.ApiKeys, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -304,10 +304,10 @@ func (a *ApiKey) HasExpiry() bool {
 }
 
 // Labels returns all the labels in Omnivore.
-func (c *Omnivore) Labels() ([]*Label, error) {
+func (c *Omnivore) Labels(ctx context.Context) ([]*Label, error) {
 	a := []*Label{}
 
-	err := c.graphql.Query(context.Background(), &queries.Labels, nil)
+	err := c.graphql.Query(ctx, &queries.Labels, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func (c *SearchItem) IsUnread() bool {
 	return c.ReadAt.IsZero()
 }
 
-func (c *Omnivore) SaveUrl(url string) error {
+func (c *Omnivore) SaveUrl(ctx context.Context, url string) error {
 	input := queries.SaveUrlInput{
 		Url:             graphql.String(url),
 		ClientRequestId: graphql.ID(uuid.New().String()),
@@ -340,13 +340,13 @@ func (c *Omnivore) SaveUrl(url string) error {
 		"input": input,
 	}
 
-	return c.graphql.Mutate(context.Background(), &queries.SaveUrl, variables)
+	return c.graphql.Mutate(ctx, &queries.SaveUrl, variables)
 }
 
 // DeleteArticle deletes an article from the library.
 //
 // The query name is weird, see https://github.com/omnivore-app/omnivore/issues/2380
-func (c *Omnivore) DeleteArticle(id string) error {
+func (c *Omnivore) DeleteArticle(ctx context.Context, id string) error {
 	input := queries.SetBookmarkArticleInput{
 		ArticleId: graphql.ID(id),
 		Bookmark:  graphql.Boolean(false),
@@ -356,6 +356,6 @@ func (c *Omnivore) DeleteArticle(id string) error {
 		"input": input,
 	}
 
-	err := c.graphql.Mutate(context.Background(), &queries.DeleteArticle, variables)
+	err := c.graphql.Mutate(ctx, &queries.DeleteArticle, variables)
 	return err
 }

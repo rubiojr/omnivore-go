@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -10,7 +11,7 @@ import (
 
 func main() {
 	client := omnivore.NewClient(omnivore.Opts{Token: getAPIToken()})
-	subs, err := client.Subscriptions()
+	subs, err := client.Subscriptions(context.Background())
 	if err != nil {
 		log.Fatalf("Failed to search: %v", err)
 	}
