@@ -28,7 +28,8 @@ var Search struct {
 					WordsCount    int
 					FeedContent   string
 					Folder        string
-					Labels        []struct {
+
+					Labels []struct {
 						Name        string
 						Color       string
 						CreatedAt   time.Time

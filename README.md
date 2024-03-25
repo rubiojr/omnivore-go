@@ -6,20 +6,36 @@ This is a Go client library for the [Omnivore GraphQL API](https://github.com/om
 
 ## Work in Progress
 
-Supported queries:
+Supported read queries:
 
-- [x] Search
-- [x] NewsletterEmails
 - [x] ApiKeys
-- [ ] Users
-- [x] Labels
-- [ ] Integrations
-- [ ] Webhooks
 - [ ] Feeds
-- [ ] Groups
 - [ ] Filters
+- [ ] Groups
+- [ ] Integrations
+- [x] Labels
+- [x] NewsletterEmails
 - [ ] Rules
+- [x] Search
 - [x] Subscriptions
+- [ ] Users
+- [ ] Webhooks
+
+Supported mutation queries:
+
+- [ ] AddPopularRead
+- [ ] BulkAction
+- [ ] CreateArticle
+- [ ] CreateGroup
+- [ ] DeleteAccount
+- [x] DeleteArticle (SetBookmarkArticle)
+- [ ] DeleteFilter
+- [ ] DeleteIntegration
+- [ ] DeleteLabel
+- [ ] DeleteRule
+- [ ] DeleteWebhook
+- [x] SaveUrl
+- [ ] EmptyTrash
 
 ## Usage
 

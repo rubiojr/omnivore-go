@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rubiojr/omnivore-go/queries"
 	"github.com/shurcooL/graphql"
 )
@@ -326,4 +327,35 @@ func (c *Omnivore) Labels() ([]*Label, error) {
 // IsUnread returns true if the item is unread.
 func (c *SearchItem) IsUnread() bool {
 	return c.ReadAt.IsZero()
+}
+
+func (c *Omnivore) SaveUrl(url string) error {
+	input := queries.SaveUrlInput{
+		Url:             graphql.String(url),
+		ClientRequestId: graphql.ID(uuid.New().String()),
+		Source:          graphql.String("api"),
+	}
+
+	variables := map[string]any{
+		"input": input,
+	}
+
+	return c.graphql.Mutate(context.Background(), &queries.SaveUrl, variables)
+}
+
+// DeleteArticle deletes an article from the library.
+//
+// The query name is weird, see https://github.com/omnivore-app/omnivore/issues/2380
+func (c *Omnivore) DeleteArticle(id string) error {
+	input := queries.SetBookmarkArticleInput{
+		ArticleId: graphql.ID(id),
+		Bookmark:  graphql.Boolean(false),
+	}
+
+	variables := map[string]any{
+		"input": input,
+	}
+
+	err := c.graphql.Mutate(context.Background(), &queries.DeleteArticle, variables)
+	return err
 }

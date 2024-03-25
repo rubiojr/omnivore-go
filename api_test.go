@@ -1,8 +1,10 @@
 package omnivore_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/rubiojr/omnivore-go"
 	"github.com/stretchr/testify/assert"
@@ -49,4 +51,17 @@ func TestLabels(t *testing.T) {
 	assert.Equal(t, labels[0].Name, "RSS")
 	assert.Equal(t, labels[0].Color, "#F26522")
 	assert.Equal(t, labels[0].Description, "")
+}
+
+func TestAddUrl(t *testing.T) {
+	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
+	wp := "https://en.wikipedia.org/wiki/Leet"
+	err := client.SaveUrl(wp)
+	assert.NoError(t, err, "Failed to save article")
+	articles, err := client.Search(omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "Leet")})
+	assert.Equal(t, len(articles), 1)
+	// Wait a bit, deletes right after saving are ignored otherwise
+	time.Sleep(5 * time.Second)
+	err = client.DeleteArticle(articles[0].ID)
+	assert.NoError(t, err, "Failed to delete article")
 }
