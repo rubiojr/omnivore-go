@@ -4,25 +4,42 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/rubiojr/omnivore-go"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestSetup(t *testing.T) {
+	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
+	articles, err := client.Search(omnivore.SearchOpts{Query: "in:all"})
+	for _, a := range articles {
+		err = client.DeleteArticle(a.ID)
+		assert.NoError(t, err, "Failed to delete article")
+	}
+}
+
+func TestSaveUrl(t *testing.T) {
+	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
+	wp := "https://en.wikipedia.org/wiki/Leet"
+	err := client.SaveUrl(wp)
+	assert.NoError(t, err, "Failed to save article")
+}
 
 func TestSearch(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
 	// https://docs.omnivore.app/using/search.html
 	articles, err := client.Search(omnivore.SearchOpts{Query: "in:all -label:RSS"})
 	assert.NoError(t, err, "Failed to search")
-	assert.Equal(t, len(articles), 3)
-	assert.Equal(t, articles[0].Title, "Organize your Omnivore library with labels")
+	assert.Equal(t, len(articles), 1)
+	assert.Equal(t, articles[0].Title, "https://en.wikipedia.org/wiki/Leet")
 
 	articles, err = client.Search(omnivore.SearchOpts{Query: "in:all label:RSS"})
 	assert.NoError(t, err, "Failed to search")
+	assert.Equal(t, len(articles), 0)
+
+	articles, err = client.Search(omnivore.SearchOpts{Query: "title:Leet"})
+	assert.NoError(t, err, "Failed to search")
 	assert.Equal(t, len(articles), 1)
-	assert.Equal(t, articles[0].IsUnread(), true)
-	assert.Equal(t, articles[0].Title, "Web changes for an improved experience")
 }
 
 func TestSubcriptions(t *testing.T) {
@@ -53,15 +70,13 @@ func TestLabels(t *testing.T) {
 	assert.Equal(t, labels[0].Description, "")
 }
 
-func TestAddUrl(t *testing.T) {
+func TestDeleteArticle(t *testing.T) {
 	client := omnivore.NewClient(omnivore.Opts{Token: os.Getenv("OMNIVORE_API_TOKEN")})
-	wp := "https://en.wikipedia.org/wiki/Leet"
-	err := client.SaveUrl(wp)
-	assert.NoError(t, err, "Failed to save article")
-	articles, err := client.Search(omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "Leet")})
+	articles, err := client.Search(omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "https://en.wikipedia.org/wiki/Leet")})
 	assert.Equal(t, len(articles), 1)
 	// Wait a bit, deletes right after saving are ignored otherwise
-	time.Sleep(5 * time.Second)
 	err = client.DeleteArticle(articles[0].ID)
 	assert.NoError(t, err, "Failed to delete article")
+	articles, err = client.Search(omnivore.SearchOpts{Query: fmt.Sprintf(`title:"%s"`, "https://en.wikipedia.org/wiki/Leet")})
+	assert.Equal(t, len(articles), 0)
 }
