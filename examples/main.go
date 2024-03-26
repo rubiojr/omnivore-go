@@ -35,6 +35,7 @@ func labelsToString(labels []omnivore.Label) string {
 	}
 	return fmt.Sprintf("[%s]", strings.Join(l, ", "))
 }
+
 func getAPIToken() string {
 	return os.Getenv("OMNIVORE_API_TOKEN")
 }
