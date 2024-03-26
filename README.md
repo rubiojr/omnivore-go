@@ -41,4 +41,6 @@ Supported mutation queries:
 
 Get an API key from https://docs.omnivore.app/integrations/api.html.
 
+![](/docs/images/freeze.png)
+
 See the [examples](examples) directory.
