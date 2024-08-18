@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"context"
+
 	"github.com/rubiojr/omnivore-go"
 	"github.com/urfave/cli/v2"
 )
@@ -14,9 +16,6 @@ func main() {
 	app := &cli.App{
 		Name:  "omnivore",
 		Usage: "Omnivore API client",
-		Action: func(*cli.Context) error {
-			return nil
-		},
 		Flags: []cli.Flag{},
 		Commands: []*cli.Command{
 			{
@@ -44,7 +43,7 @@ func listSaved(ctx *cli.Context) {
 	longFormat := ctx.Bool("long")
 	client := omnivore.NewClient(omnivore.Opts{Token: getAPIToken()})
 	// https://docs.omnivore.app/using/search.html
-	a, err := client.Search(omnivore.SearchOpts{Query: "in:all sort:saved"})
+	a, err := client.Search(context.Background(), omnivore.SearchOpts{Query: "in:all sort:saved"})
 	if err != nil {
 		log.Fatalf("Failed to search: %v", err)
 	}
