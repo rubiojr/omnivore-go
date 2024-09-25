@@ -22,13 +22,19 @@ func main() {
 				Name:  "list",
 				Usage: "List available articles",
 				Action: func(cCtx *cli.Context) error {
-					listSaved(cCtx)
-					return nil
+					return listSaved(cCtx)
 				},
 				Flags: []cli.Flag{
 					&cli.BoolFlag{
 						Name: "long",
 					},
+				},
+			},
+			{
+				Name:  "add",
+				Usage: "Save a URL",
+				Action: func(cCtx *cli.Context) error {
+					return saveUrl(cCtx)
 				},
 			},
 		},
@@ -39,13 +45,37 @@ func main() {
 	}
 }
 
-func listSaved(ctx *cli.Context) {
+func client() (*omnivore.Omnivore, error) {
+	token := getAPIToken()
+	if token == "" {
+		return nil, fmt.Errorf("OMNIVORE_API_TOKEN is required")
+	}
+
+	return omnivore.NewClient(omnivore.Opts{Token: token}), nil
+}
+
+func saveUrl(ctx *cli.Context) error {
+	client, err := client()
+	if err != nil {
+		return err
+	}
+	url := ctx.Args().First()
+	if url == "" {
+		return fmt.Errorf("URL is required")
+	}
+	return client.SaveUrl(context.Background(), url)
+}
+
+func listSaved(ctx *cli.Context) error {
+	client, err := client()
+	if err != nil {
+		return err
+	}
 	longFormat := ctx.Bool("long")
-	client := omnivore.NewClient(omnivore.Opts{Token: getAPIToken()})
 	// https://docs.omnivore.app/using/search.html
 	a, err := client.Search(context.Background(), omnivore.SearchOpts{Query: "in:all sort:saved"})
 	if err != nil {
-		log.Fatalf("Failed to search: %v", err)
+		return err
 	}
 	for _, searchItem := range a {
 		if longFormat {
@@ -55,6 +85,8 @@ func listSaved(ctx *cli.Context) {
 		}
 	}
 	fmt.Println("Total items:", len(a))
+
+	return nil
 }
 
 func formatLong(searchItem *omnivore.SearchItem) {
