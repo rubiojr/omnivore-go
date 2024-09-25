@@ -6,13 +6,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-cat << EOF > version.go
-package main
-
-const Version = "$1"
-EOF
-
-go build
+go build cmd/omnivore/...
 git commit -am "Tagging $1"
 git push
 git tag "$1"
