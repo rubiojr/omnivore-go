@@ -1,13 +1,23 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env -S risor --modules ${HOME}/.local/share/rsx/modules/ --
+import rsx
+import regexp
+import exec
 
-if [ -z "$1" ]; then
-  echo "Missing version."
-  exit 1
-fi
+if len(os.args()) < 2 {
+  print("Usage: release <version>")
+  os.exit(1)
+}
+version := os.args()[1]
 
-go build cmd/omnivore/...
-git commit -am "Tagging $1"
-git push
-git tag "$1"
-git push --tags
+const r = `v\d\.\d\.\d`
+
+if !regexp.match(r, version) {
+  print("Invalid version: " + version)
+  os.exit(1)
+}
+
+rsx.replace_in("cmd/omnivore/main.go", r, version)
+rsx.shell('git commit -m "bump version to {version}" cmd/omnivore')
+rsx.shell('git tag {version}')
+rsx.shell('git push')
+rsx.shell('git push --tags')
