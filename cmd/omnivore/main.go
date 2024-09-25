@@ -12,6 +12,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const Version = "v0.3.1"
+
 func main() {
 	app := &cli.App{
 		Name:  "omnivore",
@@ -35,6 +37,14 @@ func main() {
 				Usage: "Save a URL",
 				Action: func(cCtx *cli.Context) error {
 					return saveUrl(cCtx)
+				},
+			},
+			{
+				Name:  "version",
+				Usage: "Print version",
+				Action: func(cCtx *cli.Context) error {
+					fmt.Println("Omnivore CLI " + Version)
+					return nil
 				},
 			},
 		},
